@@ -16,10 +16,12 @@ PyInstaller==3.4
 PyQt5==5.15.2
 PyQt5-sip==12.8.1
 pyqt5ac==1.2.1
+PySide2==5.15.2
 python-dateutil==2.8.1
 pytz==2021.1
 PyYAML==5.4.1
 requests==2.25.1
+shiboken2==5.15.2
 six==1.15.0
 soupsieve==2.2
 urllib3==1.26.3
