@@ -59,17 +59,33 @@ class MainWindow(QMainWindow):
         self.toCSVButton.setDefaultAction(button_action)
         self.toCSVButton.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
+
         self.threadpool = QThreadPool(maxThreadCount=1)
         print("Multithreading with maximum {} threads".format(self.threadpool.maxThreadCount()))
 
+
+        saveFile = QAction(
+            self.ctx.img_folder, "&Save File", self)
+        saveFile.setShortcut("Ctrl+S")
+        saveFile.setStatusTip('Save File')
+        saveFile.triggered.connect(self.file_save)
+        mainMenu = self.menuBar()
+        fileMenu = mainMenu.addMenu('&File')
+        fileMenu.addAction(saveFile)
+
+        self.SaveTo.setDefaultAction(saveFile)
+        self.SaveTo.setToolButtonStyle(Qt.ToolButtonIconOnly)
+
     def onButtonClick(self, s):
-        if not self.threadpool.activeThreadCount():
+        if not hasattr(self, 'filename'):
+            self.need_setup_filename()
+        elif not self.threadpool.activeThreadCount():
             companyType = self.CompanyType.text() or ''
             whereTo = self.WhereTo.text() or ''
+            filename = self.filename
 
-            print( f"companyType: {companyType}\t destination: {whereTo}")
+            worker = Worker(scraper, whereTo, companyType, filename)
 
-            worker = Worker(scraper, whereTo, companyType)
             worker.signals.progress.connect(self.update_progress)
             worker.signals.messaging.connect(self.updateStatusBar)
             # Execute
@@ -83,15 +99,25 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage(string)
     
     def wait_please(self):
-        dlg = CustomDialog(self)
+        dlg = WaitDialog("wait please !", self)
         dlg.exec_()
     
-class CustomDialog(QDialog):
+    def need_setup_filename(self):
+        dlg = WaitDialog("set up a destination first", self)
+        dlg.exec_()
 
-    def __init__(self, *args, **kwargs):
-        super(CustomDialog, self).__init__(*args, **kwargs)
+    def file_save(self):
+        output_filename, _ = QFileDialog.getSaveFileName(self, 'Save File')
+        print( output_filename)
+        print( _ )
+        self.filename = output_filename
+    
+class WaitDialog(QDialog):
 
-        self.setWindowTitle('Wait please !')
+    def __init__(self, title, *args, **kwargs):
+        super(WaitDialog, self).__init__(*args, **kwargs)
+
+        self.setWindowTitle(title)
         QBtn = QDialogButtonBox.Ok
         self.buttonBox = QDialogButtonBox(QBtn)
 

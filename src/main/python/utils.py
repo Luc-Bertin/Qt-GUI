@@ -55,9 +55,7 @@ selectors = [
 ]
 
 
-def scraper(destination, business_type, self):
-    filename = f'./output_{clean_filename(destination)}-{clean_filename(business_type)}.csv'
-
+def scraper(destination, business_type, filename, self):
     # first save
     page_df = pd.DataFrame(
         columns=[item[0] for item in selectors] + ['category', 'destination'])
@@ -65,21 +63,20 @@ def scraper(destination, business_type, self):
 
     # append when scraping each page
     for page_number in range(1, 101):
-        if page_number % 5 == 0:
-            self.signals.progress.emit(page_number)
-            self.signals.messaging.emit(f"scrapping page_number: {page_number}")
+        self.signals.messaging.emit(f"scrapping page_number: {page_number}")
+        self.signals.progress.emit(page_number)
         try:
             url = url_constructor(destination, business_type, page_number)
             page_df = scrape_url(url, destination, business_type)
             page_df.email = page_df.email.str[7:]
             page_df.to_csv(filename, mode='a', header=False, index=False)
         except ValueError as e:
-            # emit a progress
             self.signals.messaging.emit(f'Finished scraping on page {page_number}')
             time.sleep(1.5)
             break
         except Exception as e:
+            self.signals.messaging.emit(f'Error occured: {e}')
             raise Exception(e)
-    # if everything went well
-    self.signals.messaging.emit(f'Output saved as {filename}')
+        else:
+            self.signals.messaging.emit(f'Output saved as {filename}')
     return 0

@@ -23,6 +23,10 @@ class AppContext(ApplicationContext):
     @cached_property
     def img_excel(self):
         return QIcon(self.get_resource('images/excel64.png'))
+    
+    @cached_property
+    def img_folder(self):
+        return QIcon(self.get_resource('images/folder.png'))
 
 if __name__ == '__main__':
     appctxt = AppContext()
